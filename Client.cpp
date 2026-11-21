@@ -1,15 +1,51 @@
 #include "Client.h"
 
-Client::Client(int id, const std::string& name, const Date& birthDate, const std::string& phoneNumber, const std::string& accountNumber, ClientType clientType, double balance, const Date& openingDate)
-    : id(id), name(name), birthDate(birthDate), phoneNumber(phoneNumber), accountNumber(accountNumber), clientType(clientType), balance(balance), openingDate(openingDate) 
-{
+#include <stdexcept>
+
+namespace {
+
+void validateName(const std::string& name) {
+    if (name.find_first_not_of(" \t\n\r\f\v") == std::string::npos) {
+        throw std::invalid_argument("Client name must not be blank");
+    }
+}
+
+void validateAccountNumber(const std::string& accountNumber) {
+    if (accountNumber.empty() || accountNumber.find_first_not_of("0123456789") != std::string::npos) {
+        throw std::invalid_argument("Account number must contain only digits");
+    }
+}
+
+void validateDates(const Date& birthDate, const Date& openingDate) {
+    if (openingDate < birthDate) {
+        throw std::invalid_argument("Opening date precedes birth date");
+    }
+}
+
+}
+
+Client::Client(int id, const std::string& name, const Date& birthDate, const std::string& phoneNumber,
+               const std::string& accountNumber, ClientType clientType, bool vip,
+               std::int64_t balanceInKopecks, const Date& openingDate)
+    : id(id),
+      name(name),
+      birthDate(birthDate),
+      phoneNumber(phoneNumber),
+      accountNumber(accountNumber),
+      clientType(clientType),
+      vip(vip),
+      balanceInKopecks(balanceInKopecks),
+      openingDate(openingDate) {
+    validateName(name);
+    validateAccountNumber(accountNumber);
+    validateDates(birthDate, openingDate);
 }
 
 int Client::getId() const {
     return id;
 }
 
-std::string Client::getName() const {
+const std::string& Client::getName() const {
     return name;
 }
 
@@ -17,11 +53,11 @@ Date Client::getBirthDate() const {
     return birthDate;
 }
 
-std::string Client::getPhoneNumber() const {
+const std::string& Client::getPhoneNumber() const {
     return phoneNumber;
 }
 
-std::string Client::getAccountNumber() const {
+const std::string& Client::getAccountNumber() const {
     return accountNumber;
 }
 
@@ -29,8 +65,12 @@ ClientType Client::getClientType() const {
     return clientType;
 }
 
-double Client::getBalance() const {
-    return balance;
+bool Client::isVip() const {
+    return vip;
+}
+
+std::int64_t Client::getBalanceInKopecks() const {
+    return balanceInKopecks;
 }
 
 Date Client::getOpeningDate() const {
@@ -38,10 +78,12 @@ Date Client::getOpeningDate() const {
 }
 
 void Client::setName(const std::string& newName) {
+    validateName(newName);
     name = newName;
 }
 
 void Client::setBirthDate(const Date& newBirthDate) {
+    validateDates(newBirthDate, openingDate);
     birthDate = newBirthDate;
 }
 
@@ -50,6 +92,7 @@ void Client::setPhoneNumber(const std::string& newPhoneNumber) {
 }
 
 void Client::setAccountNumber(const std::string& newAccountNumber) {
+    validateAccountNumber(newAccountNumber);
     accountNumber = newAccountNumber;
 }
 
@@ -57,12 +100,15 @@ void Client::setClientType(ClientType newClientType) {
     clientType = newClientType;
 }
 
-void Client::setBalance(double newBalance) {
-    balance = newBalance;
+void Client::setVip(bool newVip) {
+    vip = newVip;
+}
+
+void Client::setBalanceInKopecks(std::int64_t newBalanceInKopecks) {
+    balanceInKopecks = newBalanceInKopecks;
 }
 
 void Client::setOpeningDate(const Date& newOpeningDate) {
+    validateDates(birthDate, newOpeningDate);
     openingDate = newOpeningDate;
 }
-
-

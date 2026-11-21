@@ -1,10 +1,13 @@
+#pragma once
+
+#include <cstdint>
 #include <string>
+
 #include "Date.h"
 
-enum class ClientType { 
-    Individual, 
-    Business, 
-    VIP 
+enum class ClientType {
+    Individual,
+    Business
 };
 
 class Client {
@@ -15,20 +18,23 @@ private:
     std::string phoneNumber;
     std::string accountNumber;
     ClientType clientType;
-    double balance;
+    bool vip;
+    std::int64_t balanceInKopecks;
     Date openingDate;
 
-public: 
+public:
     Client(int id, const std::string& name, const Date& birthDate, const std::string& phoneNumber,
-           const std::string& accountNumber, ClientType clientType, double balance, const Date& openingDate);
+           const std::string& accountNumber, ClientType clientType, bool vip,
+           std::int64_t balanceInKopecks, const Date& openingDate);
 
     int getId() const;
-    std::string getName() const;
+    const std::string& getName() const;
     Date getBirthDate() const;
-    std::string getPhoneNumber() const;
-    std::string getAccountNumber() const;
+    const std::string& getPhoneNumber() const;
+    const std::string& getAccountNumber() const;
     ClientType getClientType() const;
-    double getBalance() const;
+    bool isVip() const;
+    std::int64_t getBalanceInKopecks() const;
     Date getOpeningDate() const;
 
     void setName(const std::string& name);
@@ -36,6 +42,7 @@ public:
     void setPhoneNumber(const std::string& phoneNumber);
     void setAccountNumber(const std::string& accountNumber);
     void setClientType(ClientType clientType);
-    void setBalance(double balance);
+    void setVip(bool vip);
+    void setBalanceInKopecks(std::int64_t balanceInKopecks);
     void setOpeningDate(const Date& openingDate);
 };

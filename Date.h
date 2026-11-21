@@ -13,7 +13,6 @@ private:
 public:
     Date();
     Date(int d, int m, int y);
-    ~Date();
 
     int getDay() const;
     int getMonth() const;
@@ -26,10 +25,8 @@ public:
 
     static bool isValid(int d, int m, int y);
 
-    void printDate() const;
-
     bool operator<(const Date& other) const;
     bool operator==(const Date& other) const;
-    std::string DateToString() const;
-    bool StringToDate(const std::string& str);
+    std::string toString() const;
+    bool setFromString(const std::string& text);
 };
