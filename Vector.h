@@ -4,6 +4,7 @@
 #include <memory>
 #include <new>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 
 template <typename T>
@@ -69,7 +70,7 @@ public:
     Vector& operator=(const Vector& other) {
         if (this != &other) {
             Vector copy(other);
-            swapStorage(copy);
+            swap(copy);
         }
         return *this;
     }
@@ -119,13 +120,17 @@ public:
 
         Vector expanded(*this, nextCapacity());
         expanded.append(value);
-        swapStorage(expanded);
+        swap(expanded);
     }
 
     void erase(std::size_t index) {
         checkIndex(index);
         for (std::size_t i = index; i + 1 < size_; ++i) {
-            data[i] = data[i + 1];
+            if constexpr (std::is_nothrow_move_assignable_v<T>) {
+                data[i] = std::move(data[i + 1]);
+            } else {
+                data[i] = data[i + 1];
+            }
         }
         --size_;
         data[size_].~T();
@@ -136,6 +141,12 @@ public:
             --size_;
             data[size_].~T();
         }
+    }
+
+    void swap(Vector& other) noexcept {
+        std::swap(data, other.data);
+        std::swap(size_, other.size_);
+        std::swap(capacity_, other.capacity_);
     }
 
     Iterator begin() {
@@ -217,11 +228,5 @@ private:
         if (index >= size_) {
             throw std::out_of_range("Vector index out of range");
         }
-    }
-
-    void swapStorage(Vector& other) noexcept {
-        std::swap(data, other.data);
-        std::swap(size_, other.size_);
-        std::swap(capacity_, other.capacity_);
     }
 };
