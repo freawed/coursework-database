@@ -16,15 +16,19 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     ui->clientsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
     connect(ui->openButton, &QPushButton::clicked,
             this, &MainWindow::openDatabase);
     connect(ui->addButton, &QPushButton::clicked,
             this, &MainWindow::addClient);
+
     ui->clientsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->clientsTable->setSelectionMode(QAbstractItemView::SingleSelection);
 
     connect(ui->editButton, &QPushButton::clicked,
             this, &MainWindow::editClient);
+    connect(ui->deleteButton, &QPushButton::clicked,
+            this, &MainWindow::deleteClient);
 
     refreshTable();
 }
@@ -154,4 +158,36 @@ void MainWindow::editClient()
     if (dialog.exec() == QDialog::Accepted) {
         refreshTable();
     }
+}
+
+void MainWindow::deleteClient()
+{
+    auto* table = ui->clientsTable;
+    const auto selected = table->selectedItems();
+
+    if (selected.isEmpty()) {
+        QMessageBox::information(this, "Удаление", "Выбери клиента в таблице.");
+        return;
+    }
+
+    const int row = selected.first()->row();
+    const int id = table->item(row, 0)->text().toInt();
+
+    const auto answer = QMessageBox::question(
+        this,
+        "Удаление клиента",
+        QStringLiteral("Удалить клиента с ID %1?").arg(id),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No);
+
+    if (answer != QMessageBox::Yes) {
+        return;
+    }
+
+    if (!database.remove(id)) {
+        QMessageBox::warning(this, "Удаление", "Клиент не найден.");
+        return;
+    }
+
+    refreshTable();
 }

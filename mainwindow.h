@@ -25,5 +25,6 @@ private:
     void refreshTable();
     void addClient();
     void editClient();
+    void deleteClient();
 };
 #endif // MAINWINDOW_H
