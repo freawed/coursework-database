@@ -7,8 +7,8 @@
 #include <QPushButton>
 #include <QStringList>
 #include <QTableWidget>
-
 #include <exception>
+#include "clientdialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -18,6 +18,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->clientsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     connect(ui->openButton, &QPushButton::clicked,
             this, &MainWindow::openDatabase);
+    connect(ui->addButton, &QPushButton::clicked,
+            this, &MainWindow::addClient);
 
     refreshTable();
 }
@@ -81,4 +83,28 @@ void MainWindow::refreshTable()
     }
 
     table->resizeColumnsToContents();
+}
+
+void MainWindow::addClient()
+{
+    ClientDialog dialog(this);
+
+    connect(&dialog, &ClientDialog::submitRequested, &dialog, [this, &dialog] {
+        try {
+            if (!database.add(dialog.readClient())) {
+                QMessageBox::warning(&dialog, "Добавление клиента",
+                                     "Этот ID или номер счёта уже занят.");
+                return;
+            }
+
+            dialog.accept();
+        } catch (const std::exception& error) {
+            QMessageBox::warning(&dialog, "Ошибка ввода",
+                                 QString::fromUtf8(error.what()));
+        }
+    });
+
+    if (dialog.exec() == QDialog::Accepted) {
+        refreshTable();
+    }
 }

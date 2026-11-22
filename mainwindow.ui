@@ -25,6 +25,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="addButton">
+        <property name="text">
+         <string>Добавить клиента</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QTableWidget" name="clientsTable"/>
       </item>
      </layout>

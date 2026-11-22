@@ -23,5 +23,6 @@ private:
     ClientDatabase database;
     void openDatabase();
     void refreshTable();
+    void addClient();
 };
 #endif // MAINWINDOW_H
