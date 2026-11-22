@@ -26,5 +26,6 @@ private:
     void addClient();
     void editClient();
     void deleteClient();
+    void saveDatabase();
 };
 #endif // MAINWINDOW_H

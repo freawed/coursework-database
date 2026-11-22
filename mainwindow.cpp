@@ -30,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->deleteButton, &QPushButton::clicked,
             this, &MainWindow::deleteClient);
 
+    connect(ui->saveButton, &QPushButton::clicked,
+            this, &MainWindow::saveDatabase);
+
     refreshTable();
 }
 
@@ -52,6 +55,28 @@ void MainWindow::openDatabase()
         refreshTable();
     } catch (const std::exception& error) {
         QMessageBox::warning(this, "Ошибка открытия",
+                             QString::fromUtf8(error.what()));
+    }
+}
+
+void MainWindow::saveDatabase()
+{
+    QFileDialog dialog(this, "Сохранить базу");
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setNameFilter("TSV (*.tsv)");
+    dialog.setDefaultSuffix("tsv");
+
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+
+    const QString path = dialog.selectedFiles().value(0);
+
+    try {
+        ClientFile::save(database, std::filesystem::path(path.toStdWString()));
+        statusBar()->showMessage("База сохранена.", 3000);
+    } catch (const std::exception& error) {
+        QMessageBox::warning(this, "Ошибка сохранения",
                              QString::fromUtf8(error.what()));
     }
 }
