@@ -17,6 +17,7 @@ public:
     ~ClientDialog();
 
     Client readClient() const;
+    void setClient(const Client& client);
 
 signals:
     void submitRequested();

@@ -20,6 +20,11 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::openDatabase);
     connect(ui->addButton, &QPushButton::clicked,
             this, &MainWindow::addClient);
+    ui->clientsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->clientsTable->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    connect(ui->editButton, &QPushButton::clicked,
+            this, &MainWindow::editClient);
 
     refreshTable();
 }
@@ -94,6 +99,48 @@ void MainWindow::addClient()
             if (!database.add(dialog.readClient())) {
                 QMessageBox::warning(&dialog, "Добавление клиента",
                                      "Этот ID или номер счёта уже занят.");
+                return;
+            }
+
+            dialog.accept();
+        } catch (const std::exception& error) {
+            QMessageBox::warning(&dialog, "Ошибка ввода",
+                                 QString::fromUtf8(error.what()));
+        }
+    });
+
+    if (dialog.exec() == QDialog::Accepted) {
+        refreshTable();
+    }
+}
+
+void MainWindow::editClient()
+{
+    auto* table = ui->clientsTable;
+    const auto selected = table->selectedItems();
+
+    if (selected.isEmpty()) {
+        QMessageBox::information(this, "Редактирование", "Выбери клиента в таблице.");
+        return;
+    }
+
+    const int row = selected.first()->row();
+    const int id = table->item(row, 0)->text().toInt();
+    const Client* client = database.findById(id);
+
+    if (client == nullptr) {
+        QMessageBox::warning(this, "Редактирование", "Клиент не найден.");
+        return;
+    }
+
+    ClientDialog dialog(this);
+    dialog.setClient(*client);
+
+    connect(&dialog, &ClientDialog::submitRequested, &dialog, [this, &dialog] {
+        try {
+            if (!database.update(dialog.readClient())) {
+                QMessageBox::warning(&dialog, "Редактирование",
+                                     "Этот номер счёта уже занят.");
                 return;
             }
 

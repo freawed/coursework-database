@@ -56,3 +56,19 @@ Client ClientDialog::readClient() const
                   ui->accountEdit->text().toStdString(), type,
                   ui->vipCheck->isChecked(), balance, openingDate);
 }
+
+void ClientDialog::setClient(const Client& client)
+{
+    setWindowTitle("Редактировать клиента");
+
+    ui->idEdit->setText(QString::number(client.getId()));
+    ui->idEdit->setReadOnly(true);
+    ui->nameEdit->setText(QString::fromStdString(client.getName()));
+    ui->birthDateEdit->setText(QString::fromStdString(client.getBirthDate().toString()));
+    ui->phoneEdit->setText(QString::fromStdString(client.getPhoneNumber()));
+    ui->accountEdit->setText(QString::fromStdString(client.getAccountNumber()));
+    ui->typeCombo->setCurrentIndex(client.getClientType() == ClientType::Individual ? 0 : 1);
+    ui->vipCheck->setChecked(client.isVip());
+    ui->balanceEdit->setText(QString::number(static_cast<qlonglong>(client.getBalanceInKopecks())));
+    ui->openingDateEdit->setText(QString::fromStdString(client.getOpeningDate().toString()));
+}
