@@ -33,6 +33,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->saveButton, &QPushButton::clicked,
             this, &MainWindow::saveDatabase);
 
+    connect(ui->mergeButton, &QPushButton::clicked,
+            this, &MainWindow::mergeDatabase);
+
     refreshTable();
 }
 
@@ -77,6 +80,33 @@ void MainWindow::saveDatabase()
         statusBar()->showMessage("База сохранена.", 3000);
     } catch (const std::exception& error) {
         QMessageBox::warning(this, "Ошибка сохранения",
+                             QString::fromUtf8(error.what()));
+    }
+}
+
+void MainWindow::mergeDatabase()
+{
+    const QString path = QFileDialog::getOpenFileName(
+        this, "Выбрать базу для объединения", {}, "TSV (*.tsv)");
+
+    if (path.isEmpty()) {
+        return;
+    }
+
+    try {
+        ClientDatabase incoming;
+        ClientFile::load(incoming, std::filesystem::path(path.toStdWString()));
+
+        if (!database.merge(incoming)) {
+            QMessageBox::warning(this, "Объединение",
+                                 "Совпадает номер счёта или закончились свободные ID.");
+            return;
+        }
+
+        refreshTable();
+        statusBar()->showMessage("Базы объединены.", 3000);
+    } catch (const std::exception& error) {
+        QMessageBox::warning(this, "Ошибка объединения",
                              QString::fromUtf8(error.what()));
     }
 }
