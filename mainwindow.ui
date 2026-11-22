@@ -75,6 +75,16 @@
      </layout>
     </item>
     <item>
+     <widget class="QLineEdit" name="searchEdit">
+      <property name="placeholderText">
+       <string>Поиск по ФИО</string>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QTableWidget" name="clientsTable"/>
     </item>
    </layout>

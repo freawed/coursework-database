@@ -36,6 +36,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->mergeButton, &QPushButton::clicked,
             this, &MainWindow::mergeDatabase);
 
+    connect(ui->searchEdit, &QLineEdit::textChanged,
+            this, &MainWindow::filterClients);
+
     refreshTable();
 }
 
@@ -147,6 +150,7 @@ void MainWindow::refreshTable()
     }
 
     table->resizeColumnsToContents();
+    filterClients();
 }
 
 void MainWindow::addClient()
@@ -245,4 +249,26 @@ void MainWindow::deleteClient()
     }
 
     refreshTable();
+}
+
+void MainWindow::filterClients()
+{
+    const QString query = ui->searchEdit->text().trimmed();
+
+    QSet<int> matchingIds;
+    if (!query.isEmpty()) {
+        const auto matches = database.findByName(query.toStdString());
+        for (const Client& client : matches) {
+            matchingIds.insert(client.getId());
+        }
+    }
+
+    auto* table = ui->clientsTable;
+    table->clearSelection();
+
+    for (int row = 0; row < table->rowCount(); ++row) {
+        const int id = table->item(row, 0)->text().toInt();
+        const bool visible = query.isEmpty() || matchingIds.contains(id);
+        table->setRowHidden(row, !visible);
+    }
 }

@@ -28,5 +28,6 @@ private:
     void deleteClient();
     void saveDatabase();
     void mergeDatabase();
+    void filterClients();
 };
 #endif // MAINWINDOW_H
