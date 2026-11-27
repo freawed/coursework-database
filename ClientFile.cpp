@@ -13,7 +13,8 @@ namespace {
 
 namespace fs = std::filesystem;
 
-constexpr char fileHeader[] = "CLIENTS\t1";
+constexpr char legacyFileHeader[] = "CLIENTS\t1";
+constexpr char fileHeader[] = "CLIENTS\t2";
 
 struct TemporaryOutput {
     fs::path directory;
@@ -59,26 +60,33 @@ bool parseInteger(const std::string& text, Integer& value) {
     return result.ec == std::errc{} && result.ptr == end;
 }
 
-Client parseClient(const std::string& line) {
-    std::array<std::string, 9> fields;
+Client parseClient(const std::string& line, bool hasOtherBankAccountsField) {
+    std::array<std::string, 10> fields{};
+    const std::size_t fieldCount = hasOtherBankAccountsField ? 10 : 9;
+    const char* fieldCountError = hasOtherBankAccountsField
+                                      ? "Expected ten fields" : "Expected nine fields";
+
     std::size_t start = 0;
-    for (std::size_t i = 0; i + 1 < fields.size(); ++i) {
+    for (std::size_t i = 0; i + 1 < fieldCount; ++i) {
         const std::size_t separator = line.find('\t', start);
         if (separator == std::string::npos) {
-            throw std::invalid_argument("Expected nine fields");
+            throw std::invalid_argument(fieldCountError);
         }
         fields[i] = line.substr(start, separator - start);
         start = separator + 1;
     }
+
     if (line.find('\t', start) != std::string::npos) {
-        throw std::invalid_argument("Expected nine fields");
+        throw std::invalid_argument(fieldCountError);
     }
     if (line.find('\r') != std::string::npos) {
         throw std::invalid_argument("Unexpected carriage return");
     }
-    fields.back() = line.substr(start);
+    fields[fieldCount - 1] = line.substr(start);
 
-    const auto& [idText, name, birthText, phone, account, type, vip, balanceText, openingText] = fields;
+    const auto& [idText, name, birthText, phone, account, type, vip,
+                 balanceText, openingText, otherBankAccounts] = fields;
+
     int id;
     std::int64_t balance;
     Date birth;
@@ -96,8 +104,14 @@ Client parseClient(const std::string& line) {
         throw std::invalid_argument("VIP status must be 0 or 1");
     }
 
+    if (hasOtherBankAccountsField && otherBankAccounts != "0" &&
+        otherBankAccounts != "1") {
+        throw std::invalid_argument("Other bank accounts status must be 0 or 1");
+    }
+
     const ClientType clientType = type == "Individual" ? ClientType::Individual : ClientType::Business;
-    return Client(id, name, birth, phone, account, clientType, vip == "1", balance, opening);
+    return Client(id, name, birth, phone, account, clientType,
+                  vip == "1", balance, opening, otherBankAccounts == "1");
 }
 
 void writeClient(std::ostream& output, const Client& client) {
@@ -119,7 +133,8 @@ void writeClient(std::ostream& output, const Client& client) {
            << (type == ClientType::Individual ? "Individual" : "Business") << '\t'
            << (client.isVip() ? '1' : '0') << '\t'
            << client.getBalanceInKopecks() << '\t'
-           << client.getOpeningDate().toString() << '\n';
+           << client.getOpeningDate().toString() << '\t'
+           << (client.hasOtherBankAccounts() ? '1' : '0') << '\n';
 }
 
 }
@@ -159,7 +174,9 @@ void ClientFile::load(ClientDatabase& database, const fs::path& path) {
     if (line.compare(0, 3, "\xEF\xBB\xBF") == 0) {
         line.erase(0, 3);
     }
-    if (line != fileHeader) {
+    const bool hasOtherBankAccountsField = line == fileHeader;
+
+    if (!hasOtherBankAccountsField && line != legacyFileHeader) {
         throw std::runtime_error("Invalid database file header or version");
     }
 
@@ -169,7 +186,7 @@ void ClientFile::load(ClientDatabase& database, const fs::path& path) {
         ++lineNumber;
         removeTrailingCarriageReturn(line);
         try {
-            if (!loaded.add(parseClient(line))) {
+            if (!loaded.add(parseClient(line, hasOtherBankAccountsField))) {
                 throw std::invalid_argument("Duplicate ID or account number");
             }
         } catch (const std::invalid_argument& error) {
