@@ -120,7 +120,8 @@ void MainWindow::refreshTable()
 
     const QStringList headers{
         "ID", "ФИО", "Дата рождения", "Телефон", "Номер счёта",
-        "Тип клиента", "VIP", "Баланс, коп.", "Дата открытия"
+        "Тип клиента", "VIP", "Баланс, коп.", "Дата открытия",
+        "Счета в другом банке"
     };
 
     table->setColumnCount(headers.size());
@@ -139,7 +140,8 @@ void MainWindow::refreshTable()
                 ? QStringLiteral("Физлицо") : QStringLiteral("Юрлицо"),
             client.isVip() ? QStringLiteral("Да") : QStringLiteral("Нет"),
             QString::number(static_cast<qlonglong>(client.getBalanceInKopecks())),
-            QString::fromStdString(client.getOpeningDate().toString())
+            QString::fromStdString(client.getOpeningDate().toString()),
+            client.hasOtherBankAccounts() ? QStringLiteral("Да") : QStringLiteral("Нет")
         };
 
         for (int column = 0; column < values.size(); ++column) {
