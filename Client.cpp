@@ -26,16 +26,17 @@ void validateDates(const Date& birthDate, const Date& openingDate) {
 
 Client::Client(int id, const std::string& name, const Date& birthDate, const std::string& phoneNumber,
                const std::string& accountNumber, ClientType clientType, bool vip,
-               std::int64_t balanceInKopecks, const Date& openingDate)
+               std::int64_t balanceInKopecks, const Date& openingDate, bool otherBankAccounts)
     : id(id),
-      name(name),
-      birthDate(birthDate),
-      phoneNumber(phoneNumber),
-      accountNumber(accountNumber),
-      clientType(clientType),
-      vip(vip),
-      balanceInKopecks(balanceInKopecks),
-      openingDate(openingDate) {
+    name(name),
+    birthDate(birthDate),
+    phoneNumber(phoneNumber),
+    accountNumber(accountNumber),
+    clientType(clientType),
+    vip(vip),
+    balanceInKopecks(balanceInKopecks),
+    openingDate(openingDate),
+    otherBankAccounts(otherBankAccounts) {
     validateName(name);
     validateAccountNumber(accountNumber);
     validateDates(birthDate, openingDate);
@@ -75,6 +76,10 @@ std::int64_t Client::getBalanceInKopecks() const {
 
 Date Client::getOpeningDate() const {
     return openingDate;
+}
+
+bool Client::hasOtherBankAccounts() const {
+    return otherBankAccounts;
 }
 
 void Client::setName(const std::string& newName) {

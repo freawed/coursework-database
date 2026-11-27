@@ -60,9 +60,11 @@ bool ClientDatabase::merge(const ClientDatabase& other) {
             return false;
         }
         ++lastId;
-        if (!merged.add(Client(lastId, client.getName(), client.getBirthDate(), client.getPhoneNumber(),
-                               client.getAccountNumber(), client.getClientType(), client.isVip(),
-                               client.getBalanceInKopecks(), client.getOpeningDate()))) {
+        if (!merged.add(Client(lastId, client.getName(), client.getBirthDate(),
+                               client.getPhoneNumber(), client.getAccountNumber(),
+                               client.getClientType(), client.isVip(),
+                               client.getBalanceInKopecks(), client.getOpeningDate(),
+                               client.hasOtherBankAccounts()))) {
             return false;
         }
     }

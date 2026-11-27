@@ -21,12 +21,13 @@ private:
     bool vip;
     std::int64_t balanceInKopecks;
     Date openingDate;
+    bool otherBankAccounts;
 
 public:
-    Client(int id, const std::string& name, const Date& birthDate, const std::string& phoneNumber,
-           const std::string& accountNumber, ClientType clientType, bool vip,
-           std::int64_t balanceInKopecks, const Date& openingDate);
-
+    Client(int id, const std::string& name, const Date& birthDate,
+           const std::string& phoneNumber, const std::string& accountNumber,
+           ClientType clientType, bool vip, std::int64_t balanceInKopecks,
+           const Date& openingDate, bool otherBankAccounts = false);
     int getId() const;
     const std::string& getName() const;
     Date getBirthDate() const;
@@ -36,6 +37,7 @@ public:
     bool isVip() const;
     std::int64_t getBalanceInKopecks() const;
     Date getOpeningDate() const;
+    bool hasOtherBankAccounts() const;
 
     void setName(const std::string& name);
     void setBirthDate(const Date& birthDate);
