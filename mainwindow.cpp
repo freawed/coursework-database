@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QStringList>
 #include <QTableWidget>
+#include <QInputDialog>
 #include <exception>
 #include "clientdialog.h"
 
@@ -121,12 +122,13 @@ void MainWindow::refreshTable()
     const QStringList headers{
         "ID", "ФИО", "Дата рождения", "Телефон", "Номер счёта",
         "Тип клиента", "VIP", "Баланс, коп.", "Дата открытия",
-        "Счета в другом банке"
+        "Счета в другом банке", "Чпециальное предложение"
     };
 
     table->setColumnCount(headers.size());
     table->setHorizontalHeaderLabels(headers);
     table->setRowCount(static_cast<int>(database.size()));
+    const int offerColumn = table->columnCount() - 1;
 
     int row = 0;
     for (const Client& client : database) {
@@ -146,6 +148,19 @@ void MainWindow::refreshTable()
 
         for (int column = 0; column < values.size(); ++column) {
             table->setItem(row, column, new QTableWidgetItem(values[column]));
+        }
+
+        if (client.hasOtherBankAccounts()) {
+            auto* offerButton = new QPushButton("Отправить предложение");
+            const int clientId = client.getId();
+
+            connect(offerButton, &QPushButton::clicked, this, [this, clientId] {
+                sendSpecialOffer(clientId);
+            });
+
+            table->setCellWidget(row, offerColumn, offerButton);
+        } else {
+            table->removeCellWidget(row, offerColumn);
         }
 
         ++row;
@@ -273,4 +288,29 @@ void MainWindow::filterClients()
         const bool visible = query.isEmpty() || matchingIds.contains(id);
         table->setRowHidden(row, !visible);
     }
+}
+
+void MainWindow::sendSpecialOffer(int clientId)
+{
+    const Client* client = database.findById(clientId);
+    if (!client || !client->hasOtherBankAccounts()) {
+        return;
+    }
+
+    const QString name = QString::fromStdString(client->getName());
+
+    bool accepted = false;
+    const double rate = QInputDialog::getDouble(
+        this,
+        "Специальное предложение",
+        QStringLiteral("Ставка для клиента %1, % годовых").arg(name),
+        10.0, 0.01, 100.0, 2, &accepted);
+
+    if (!accepted) {
+        return;
+    }
+
+    statusBar()->showMessage(
+        QStringLiteral("Выбрана ставка %1 % годовых.").arg(rate, 0, 'f', 2),
+        3000);
 }

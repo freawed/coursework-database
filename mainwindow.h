@@ -29,5 +29,6 @@ private:
     void saveDatabase();
     void mergeDatabase();
     void filterClients();
+    void sendSpecialOffer(int clientId);
 };
 #endif // MAINWINDOW_H
