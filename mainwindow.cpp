@@ -8,6 +8,13 @@
 #include <QStringList>
 #include <QTableWidget>
 #include <QInputDialog>
+#include <QDateTime>
+#include <QDir>
+#include <QLocale>
+#include <QPageSize>
+#include <QPdfWriter>
+#include <QSaveFile>
+#include <QTextDocument>
 #include <exception>
 #include "clientdialog.h"
 
@@ -310,7 +317,48 @@ void MainWindow::sendSpecialOffer(int clientId)
         return;
     }
 
+    const QDir projectDir(QString::fromUtf8(COURSEWORK_PROJECT_DIR));
+    const QString folder = QStringLiteral("users/%1").arg(clientId);
+
+    if (!projectDir.mkpath(folder)) {
+        QMessageBox::warning(this, "Ошибка PDF",
+                             "Не удалось создать папку клиента.");
+        return;
+    }
+
+    const QString timestamp =
+        QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss-zzz");
+    const QString path =
+        projectDir.filePath(folder + "/offer-" + timestamp + ".pdf");
+
+    QSaveFile file(path);
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::warning(this, "Ошибка PDF", file.errorString());
+        return;
+    }
+
+    {
+        QPdfWriter writer(&file);
+        writer.setPageSize(QPageSize(QPageSize::A4));
+        writer.setTitle("Специальное предложение по вкладу");
+
+        const QString rateText = QLocale(QLocale::Russian).toString(rate, 'f', 2);
+        QTextDocument document;
+        document.setHtml(
+            QStringLiteral("<h1>Специальное предложение по вкладу</h1>"
+                           "<p>%1, предлагаем вам открыть вклад "
+                           "по индивидуальной ставке <b>%2 % годовых</b>.</p>")
+                .arg(name.toHtmlEscaped(), rateText));
+
+        document.print(&writer);
+    }
+
+    if (file.pos() <= 0 || !file.commit()) {
+        QMessageBox::warning(this, "Ошибка PDF", "Не удалось сохранить PDF.");
+        return;
+    }
+
     statusBar()->showMessage(
-        QStringLiteral("Выбрана ставка %1 % годовых.").arg(rate, 0, 'f', 2),
-        3000);
+        QStringLiteral("Предложение сохранено: %1").arg(QDir::toNativeSeparators(path)),
+        7000);
 }

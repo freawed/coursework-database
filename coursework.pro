@@ -13,3 +13,5 @@ HEADERS += mainwindow.h Client.h Date.h \
 
 FORMS += mainwindow.ui \
     clientdialog.ui
+
+DEFINES += $$shell_quote(COURSEWORK_PROJECT_DIR=\"$$PWD\")
