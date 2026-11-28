@@ -2,6 +2,11 @@ QT += widgets
 CONFIG += c++17
 TEMPLATE = app
 TARGET = coursework-qt
+RC_ICONS = app.ico
+
+app_icon.files = app.ico
+app_icon.prefix = /
+RESOURCES += app_icon
 
 SOURCES += qt_main.cpp mainwindow.cpp \
            Client.cpp Date.cpp ClientDatabase.cpp ClientFile.cpp \

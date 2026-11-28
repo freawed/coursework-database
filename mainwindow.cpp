@@ -15,6 +15,7 @@
 #include <QPdfWriter>
 #include <QSaveFile>
 #include <QTextDocument>
+#include <QFile>
 #include <exception>
 #include "clientdialog.h"
 
@@ -129,7 +130,7 @@ void MainWindow::refreshTable()
     const QStringList headers{
         "ID", "ФИО", "Дата рождения", "Телефон", "Номер счёта",
         "Тип клиента", "VIP", "Баланс, коп.", "Дата открытия",
-        "Счета в другом банке", "Чпециальное предложение"
+        "Счета в другом банке", "Специальное предложение"
     };
 
     table->setColumnCount(headers.size());
@@ -318,6 +319,21 @@ void MainWindow::sendSpecialOffer(int clientId)
     }
 
     const QDir projectDir(QString::fromUtf8(COURSEWORK_PROJECT_DIR));
+
+    QFile templateFile(projectDir.filePath(QStringLiteral("special_offer.html")));
+    if (!templateFile.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, "Ошибка PDF",
+                             "Не удалось открыть special_offer.html.");
+        return;
+    }
+
+    const QString htmlTemplate = QString::fromUtf8(templateFile.readAll());
+    if (templateFile.error() != QFileDevice::NoError || htmlTemplate.trimmed().isEmpty()) {
+        QMessageBox::warning(this, "Ошибка PDF",
+                             "Шаблон пуст или не удалось его прочитать.");
+        return;
+    }
+
     const QString folder = QStringLiteral("users/%1").arg(clientId);
 
     if (!projectDir.mkpath(folder)) {
@@ -344,12 +360,7 @@ void MainWindow::sendSpecialOffer(int clientId)
 
         const QString rateText = QLocale(QLocale::Russian).toString(rate, 'f', 2);
         QTextDocument document;
-        document.setHtml(
-            QStringLiteral("<h1>Специальное предложение по вкладу</h1>"
-                           "<p>%1, предлагаем вам открыть вклад "
-                           "по индивидуальной ставке <b>%2 % годовых</b>.</p>")
-                .arg(name.toHtmlEscaped(), rateText));
-
+        document.setHtml(htmlTemplate.arg(name.toHtmlEscaped(), rateText));
         document.print(&writer);
     }
 

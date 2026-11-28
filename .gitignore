@@ -4,5 +4,7 @@ x64/
 Debug/
 Release/
 *.exe
+!/dist/coursework-qt.exe
 *.obj
 *.doc
+/users/
